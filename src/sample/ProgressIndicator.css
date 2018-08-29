@@ -1,0 +1,17 @@
+.progress-indicator .indicator {
+    -fx-background-color: transparent;
+    -fx-progress-color: whitesmoke;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.progress-indicator {
+    -fx-progress-color: whitesmoke;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.progress-indicator .percentage{
+    -fx-font-size: 0px;
+    -fx-fill:null;
+}
