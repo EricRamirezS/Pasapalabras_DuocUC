@@ -1,5 +1,6 @@
 package sample;
 
+import com.github.sarxos.webcam.Webcam;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -7,6 +8,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+
+import java.util.List;
 
 public class Main extends Application {
 
@@ -17,6 +20,13 @@ public class Main extends Application {
         primaryStage.setTitle("Pasapalabras");
         primaryStage.setScene(new Scene(root, SCREEN.getWidth(), SCREEN.getHeight()));
         primaryStage.show();
+
+        try {
+            List<Webcam> webcam = Webcam.getWebcams();
+            if (webcam.get(0)!=null){
+                webcam.get(0).open();
+            }
+        }catch (Exception ignore){}
     }
 
 
