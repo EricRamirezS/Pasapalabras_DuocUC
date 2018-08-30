@@ -14,19 +14,28 @@ import java.util.List;
 public class Main extends Application {
 
     public static final Rectangle2D SCREEN = Screen.getPrimary().getBounds();
+    public static Stage stage;
+
     @Override
     public void start(Stage primaryStage) throws Exception{
+        stage = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Pasapalabras");
         primaryStage.setScene(new Scene(root, SCREEN.getWidth(), SCREEN.getHeight()));
         primaryStage.show();
-
+        List<Webcam> webcam = Webcam.getWebcams();
         try {
-            List<Webcam> webcam = Webcam.getWebcams();
             if (webcam.get(0)!=null){
                 webcam.get(0).open();
             }
         }catch (Exception ignore){}
+
+        primaryStage.setOnCloseRequest(e->{
+            try {
+                webcam.get(0).close();
+
+            } catch (Exception ignore){};
+        });
     }
 
 

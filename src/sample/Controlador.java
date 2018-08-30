@@ -9,7 +9,9 @@ import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
@@ -30,6 +32,9 @@ public class Controlador {
     private HashMap<Character, CirculoLetra> circulos;
 
     @FXML
+    private ImageView webcam;
+
+    @FXML
     private ProgressIndicator barraTiempoRestante;
 
     @FXML
@@ -43,6 +48,10 @@ public class Controlador {
 
     private Thread thread;
 
+    private BorderPane webCamPane;
+
+    private int tiempo=180;
+    private Date inicio = Calendar.getInstance().getTime();
     private int laps=0;
     @FXML
     void initialize() throws IOException {
@@ -65,15 +74,10 @@ public class Controlador {
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-
-                while (Integer.parseInt(labelTiempo.getText())>0 && laps<2){
-                    Thread.sleep(1000);
-                    Platform.runLater(()-> {
-                        labelTiempo.setText(((Integer.parseInt(labelTiempo.getText()) - 1)>-1?
-                                (Integer.parseInt(labelTiempo.getText()) - 1):0)+ "");
-                        barraTiempoRestante.setProgress((180D-Integer.parseInt(labelTiempo.getText()))/180);
-                        }
-                    );
+                while (180000-evaluarTiempo(Calendar.getInstance().getTime())>0 && laps<2){
+                    Thread.sleep(1000/60);
+                    setTiempo(180000-(int)evaluarTiempo(Calendar.getInstance().getTime()));
+                    updateTiempo();
                 }
                 return null;
             }
@@ -94,9 +98,36 @@ public class Controlador {
                 selectNextCircle(CirculoLetra.STATUS.PENDIENTE);
             }
         });
+        Platform.runLater(()->{
+	        webcam.setFitHeight(root.getHeight());
+	        webcam.setFitWidth(root.getWidth());
+	        webcam.prefHeight(root.getHeight());
+	        webcam.prefWidth(root.getWidth());
+	        webcam.setPreserveRatio(false);
+        });
+
+
+        new WebCamManager(0,webcam);
     }
 
+    void setTiempo(int milis){
+    	tiempo = milis;
+	    Platform.runLater(()->{
+		    barraTiempoRestante.setProgress((180000-(tiempo))/180000D);
+	    });
+    }
+	void updateTiempo(){
+    	Platform.runLater(()->{
+		    labelTiempo.setText(((tiempo/1000)>-1?
+				    (int)(tiempo/1000):0)+ "");
+	    });
+	}
 
+	long evaluarTiempo(Date date) {
+		long diferencia = (Math.abs(inicio.getTime() - date.getTime()));
+		System.out.println(diferencia);
+		return diferencia;
+	}
 
     private double calcularCircunferenciaX(double r, int i){
         double x=0;
@@ -263,5 +294,9 @@ class CirculoLetra extends Group {
             circle.setFill(lg);
         }
     }
+
+}
+
+class Animación {
 
 }
