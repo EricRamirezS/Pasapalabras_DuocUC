@@ -1,302 +1,194 @@
 package sample;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.concurrent.Task;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Controlador {
 
-    static final List<Character> abc = new ArrayList<Character>(Arrays.asList('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
-            'J', 'K', 'L', 'M', 'N', 'Ñ', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'));
+	private final DoubleProperty tiempoProperty = new SimpleDoubleProperty(CONFIG.TIEMPO_MAXIMO * 1000);
+	private Character current = CONFIG.abc.get(0);
+	@FXML
+	private ImageView webcam;
+	@FXML
+	private ProgressIndicator barraTiempoRestante;
+	@FXML
+	private Label labelTiempo;
+	@FXML
+	private Label labelRespuestaCorrecta;
+	@FXML
+	private StackPane root;
+	private HashMap<Character, CirculoLetra> circulos;
+	private boolean isPlaying = false;
+	private Timeline timeline;
 
-    private static Character current = abc.get(0);
+	@FXML
+	void initialize() {
 
-    private HashMap<Character, CirculoLetra> circulos;
+		root.setStyle("-fx-background-color: darkslategray");
+		int i = 0;
+		circulos = new HashMap<>();
+		ArrayList<CirculoLetra> circuloLetras = new ArrayList<>();
+		double r = Main.SCREEN.getHeight() / 2 * 0.8;
+		for (char character : CONFIG.abc) {
+			CirculoLetra circle = new CirculoLetra(character, this);
+			root.getChildren().add(circle);
+			circulos.put(character, circle);
+			circuloLetras.add(circle);
+			double x = calcularCircunferenciaX(r, i);
+			double y = calcularCircunferenciaY(r, i);
+			circle.setTranslateX(x);
+			circle.setTranslateY(-y);
+			i++;
+		}
 
-    @FXML
-    private ImageView webcam;
-
-    @FXML
-    private ProgressIndicator barraTiempoRestante;
-
-    @FXML
-    private Label labelTiempo;
-
-    @FXML
-    private Label labelRespuestaCorrecta;
-
-    @FXML
-    private StackPane root;
-
-    private Thread thread;
-
-    private BorderPane webCamPane;
-
-    private int tiempo=180;
-    private Date inicio = Calendar.getInstance().getTime();
-    private int laps=0;
-    @FXML
-    void initialize() throws IOException {
-
-        root.setStyle("-fx-background-color: darkslategray");
-        int i=0;
-        circulos = new HashMap<>();
-        double r = Main.SCREEN.getHeight()/2*0.8;
-        for (char character: abc) {
-            CirculoLetra circle = new CirculoLetra(character, this);
-            root.getChildren().add(circle);
-            circulos.put(character,circle);
-            double x = calcularCircunferenciaX(r,i);
-            double y = calcularCircunferenciaY(r,i);
-            circle.setTranslateX(x);
-            circle.setTranslateY(-y);
-            i++;
-        }
-
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                while (180000-evaluarTiempo(Calendar.getInstance().getTime())>0 && laps<2){
-                    Thread.sleep(1000/60);
-                    setTiempo(180000-(int)evaluarTiempo(Calendar.getInstance().getTime()));
-                    updateTiempo();
-                }
-                return null;
-            }
-        };
-        thread = new Thread(task);
-        thread.start();
-
-        circulos.get(current).setCurrentStatus(CirculoLetra.STATUS.ACTIVA);
-
-        root.setOnKeyPressed(e->{
-            if (e.getCode()== KeyCode.Z){
-                selectNextCircle(CirculoLetra.STATUS.INCORRECTA);
-            }
-            if (e.getCode()== KeyCode.X){
-                selectNextCircle(CirculoLetra.STATUS.CORRECTA);
-            }
-            if (e.getCode()== KeyCode.C){
-                selectNextCircle(CirculoLetra.STATUS.PENDIENTE);
-            }
-        });
-        Platform.runLater(()->{
-	        webcam.setFitHeight(root.getHeight());
-	        webcam.setFitWidth(root.getWidth());
-	        webcam.prefHeight(root.getHeight());
-	        webcam.prefWidth(root.getWidth());
-	        webcam.setPreserveRatio(false);
-        });
+		timeline = new Timeline(new KeyFrame(Duration.millis(1000 / 60), ev -> {
+			if (current != null) {
+				setTiempoProperty(tiempoProperty.subtract(1000 / 60).get());
+			}
+		}));
+		timeline.setCycleCount(Animation.INDEFINITE);
 
 
-        new WebCamManager(0,webcam);
-    }
+		circulos.get(current).setCurrentStatus(CirculoLetra.STATUS.ACTIVA);
+		Platform.runLater(() -> Main.stage.getScene().setOnKeyPressed(e -> {
+			if (e.getCode() == CONFIG.ERROR) {
+				selectNextCircle(CirculoLetra.STATUS.INCORRECTA);
+			}
+			if (e.getCode() == CONFIG.CORRECTA) {
+				selectNextCircle(CirculoLetra.STATUS.CORRECTA);
+			}
+			if (e.getCode() == CONFIG.PASAPALABRA) {
+				selectNextCircle(CirculoLetra.STATUS.PENDIENTE);
+			}
+			if (e.getCode() == CONFIG.PAUSA) {
+				pausar();
+			}
+		}));
 
-    void setTiempo(int milis){
-    	tiempo = milis;
-	    Platform.runLater(()->{
-		    barraTiempoRestante.setProgress((180000-(tiempo))/180000D);
-	    });
-    }
-	void updateTiempo(){
-    	Platform.runLater(()->{
-		    labelTiempo.setText(((tiempo/1000)>-1?
-				    (int)(tiempo/1000):0)+ "");
-	    });
+		Platform.runLater(() -> {
+			webcam.setFitHeight(root.getHeight());
+			webcam.setFitWidth(root.getWidth());
+			webcam.prefHeight(root.getHeight());
+			webcam.prefWidth(root.getWidth());
+			webcam.setPreserveRatio(false);
+		});
+		barraTiempoRestante.progressProperty().bind(
+				tiempoProperty.subtract(CONFIG.TIEMPO_MAXIMO * 1000).multiply(-1).divide(CONFIG.TIEMPO_MAXIMO * 1000D)
+		);
+		IntegerProperty intprop = new SimpleIntegerProperty();
+		intprop.bind(tiempoProperty.divide(1000));
+		labelTiempo.textProperty().bind(
+				intprop.asString()
+		);
+		new WebCamManager(0, webcam);
+		new AnimacionEntrada().getAnimacion(circuloLetras).play();
 	}
 
-	long evaluarTiempo(Date date) {
-		long diferencia = (Math.abs(inicio.getTime() - date.getTime()));
-		System.out.println(diferencia);
-		return diferencia;
+	@FXML
+	void correct(ActionEvent event) {
+		selectNextCircle(CirculoLetra.STATUS.CORRECTA);
 	}
 
-    private double calcularCircunferenciaX(double r, int i){
-        double x=0;
-        x = r*Math.sin(2*Math.PI/(abc.size())*(i));
-        return x;
-    }
-    private double calcularCircunferenciaY(double r, int i){
-        double y=0;
-        y = r*Math.cos(2*Math.PI/(abc.size())*(i));
-        return y;
-    }
+	@FXML
+	void incorrect(ActionEvent event) {
+		selectNextCircle(CirculoLetra.STATUS.INCORRECTA);
+	}
 
-    public CirculoLetra getCircle(char character){
-        return circulos.get(character);
-    }
+	@FXML
+	void pause(ActionEvent event) {
+		pausar();
+	}
 
-    void updatePuntaje(){
-        int correctas = 0;
-        for(Map.Entry<Character, CirculoLetra> entry : circulos.entrySet()) {
-            CirculoLetra circulo = entry.getValue();
-            if(circulo.getStatus()== CirculoLetra.STATUS.CORRECTA){
-                correctas++;
-            }
-        }
-        labelRespuestaCorrecta.setText(correctas+"");
-    }
+	@FXML
+	void skip(ActionEvent event) {
+		selectNextCircle(CirculoLetra.STATUS.PENDIENTE);
+	}
 
+	private void setTiempoProperty(double tiempoProperty) {
+		Platform.runLater(() -> {
+			if (tiempoProperty > 0) {
+				this.tiempoProperty.set(tiempoProperty);
+			} else {
+				this.tiempoProperty.set(0);
+			}
+		});
+	}
 
-    void selectNextCircle(CirculoLetra.STATUS newStatus){
-        if(current!=null) {
-            circulos.get(current).setCurrentStatus(newStatus);
-            int index = abc.indexOf(current);
-            index++;
-            if (index == abc.size()) index = 0;
-            current = abc.get(index);
-            laps = 0;
-            while (circulos.get(current).getStatus() != CirculoLetra.STATUS.ACTIVA && laps < 2) {
-                CirculoLetra.STATUS estado = circulos.get(current).getStatus();
-                if (estado != CirculoLetra.STATUS.CORRECTA && estado != CirculoLetra.STATUS.INCORRECTA) {
-                    circulos.get(current).setCurrentStatus(CirculoLetra.STATUS.ACTIVA);
-                } else {
-                    index++;
-                    if (index == abc.size()) {
-                        index = 0;
-                        laps++;
-                    }
-                    current = abc.get(index);
-                }
-            }
-            if (laps >= 2) {
-                current = null;
-            }
-            updatePuntaje();
-        }
-    }
-    @FXML
-    void correct(ActionEvent event) {
-        selectNextCircle(CirculoLetra.STATUS.CORRECTA);
-    }
+	private double calcularCircunferenciaX(double r, int i) {
+		double x;
+		x = r * Math.sin(2 * Math.PI / (CONFIG.abc.size()) * (i));
+		return x;
+	}
 
-    @FXML
-    void incorrect(ActionEvent event) {
-        selectNextCircle(CirculoLetra.STATUS.INCORRECTA);
-    }
+	private double calcularCircunferenciaY(double r, int i) {
+		double y;
+		y = r * Math.cos(2 * Math.PI / (CONFIG.abc.size()) * (i));
+		return y;
+	}
 
-    @FXML
-    void pause(ActionEvent event) {
-        selectNextCircle(CirculoLetra.STATUS.INICIAL);
-    }
+	private void updatePuntaje() {
+		int correctas = 0;
+		for (Map.Entry<Character, CirculoLetra> entry : circulos.entrySet()) {
+			CirculoLetra circulo = entry.getValue();
+			if (circulo.getStatus() == CirculoLetra.STATUS.CORRECTA) {
+				correctas++;
+			}
+		}
+		labelRespuestaCorrecta.setText(correctas + "");
+	}
 
-    @FXML
-    void skip(ActionEvent event) {
-        selectNextCircle(CirculoLetra.STATUS.PENDIENTE);
-    }
-}
+	private void selectNextCircle(CirculoLetra.STATUS newStatus) {
+		if (current != null) {
+			circulos.get(current).setCurrentStatus(newStatus);
+			int index = CONFIG.abc.indexOf(current);
+			index++;
+			if (index == CONFIG.abc.size()) index = 0;
+			current = CONFIG.abc.get(index);
+			int laps = 0;
+			while (circulos.get(current).getStatus() != CirculoLetra.STATUS.ACTIVA && laps < 10) {
+				CirculoLetra.STATUS estado = circulos.get(current).getStatus();
+				if (estado != CirculoLetra.STATUS.CORRECTA && estado != CirculoLetra.STATUS.INCORRECTA) {
+					circulos.get(current).setCurrentStatus(CirculoLetra.STATUS.ACTIVA);
+				} else {
+					index++;
+					if (index == CONFIG.abc.size()) {
+						index = 0;
+						laps++;
+					}
+					current = CONFIG.abc.get(index);
+				}
+			}
+			if (laps >= 10) {
+				current = null;
+				timeline.stop();
+			}
+			updatePuntaje();
+		}
+	}
 
-class CirculoLetra extends Group {
-    enum STATUS {PENDIENTE, CORRECTA, INCORRECTA, INICIAL, ACTIVA}
-
-    private Property<STATUS> currentStatus = new SimpleObjectProperty<>();
-    private Circle circle;
-    private byte odd = 0;
-
-    CirculoLetra(char character, Controlador controlador) {
-        String caracter = String.valueOf(character);
-        StackPane root = new StackPane();
-        Label text = new Label(caracter);
-        circle = new Circle((35D*Main.SCREEN.getHeight())/900);
-        Circle circleBorder = new Circle(36D*Main.SCREEN.getHeight()/900);
-        circleBorder.setFill(Color.WHITE);
-        text.setStyle("-fx-text-fill: whitesmoke;" +
-                "-fx-font-weight: bolder;" +
-                "-fx-font-size: "+(32D*Main.SCREEN.getHeight()/900)+"px;" +
-                "-fx-font-family: Arial");
-        setCurrentStatus(STATUS.INICIAL);
-
-        root.getChildren().addAll(circleBorder,circle,text);
-        getChildren().add(root);
-
-        circle.setOnMouseClicked(e->{
-            switch(currentStatus.getValue()){
-                case PENDIENTE: setCurrentStatus(STATUS.INICIAL);break;
-                case INICIAL: setCurrentStatus(STATUS.ACTIVA);break;
-                case ACTIVA: setCurrentStatus(STATUS.CORRECTA);break;
-                case CORRECTA: setCurrentStatus(STATUS.INCORRECTA);break;
-                default: setCurrentStatus(STATUS.PENDIENTE);
-            }
-        });
-    }
-
-    public STATUS getStatus(){
-        return currentStatus.getValue();
-
-    }
-
-    public void setCurrentStatus(STATUS status) {
-        currentStatus.setValue(status);
-        fillCircle();
-    }
-
-    Thread thread;
-    private void fillCircle(){
-        if (currentStatus.getValue()==STATUS.ACTIVA){
-            if(odd%2==0) {
-                Stop[] stops = new Stop[]{new Stop(0, Color.LIGHTBLUE), new Stop(1, Color.BLUE)};
-                LinearGradient lg = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE, stops);
-                circle.setFill(lg);
-                odd++;
-            } else {
-                Stop[] stops = new Stop[] { new Stop(0, Color.BLUE), new Stop(1, Color.DARKBLUE)};
-                LinearGradient lg = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE, stops);
-                circle.setFill(lg);
-                odd=0;
-            }
-            Task<Void> task = new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
-                    Thread.sleep(1000);
-                    fillCircle();
-                    return null;
-                }
-            };
-            thread = new Thread(task);
-            thread.start();
-        }
-        else if (currentStatus.getValue()==STATUS.INICIAL){
-            Stop[] stops = new Stop[] { new Stop(0, Color.BLUE), new Stop(1, Color.DARKBLUE)};
-            LinearGradient lg = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE, stops);
-            circle.setFill(lg);
-        }
-        else if (currentStatus.getValue()==STATUS.PENDIENTE){
-            Stop[] stops = new Stop[] { new Stop(0, new Color(1,139D/255,0,1)), new Stop(1, new Color(130D/255,67D/255,0,1))};
-            LinearGradient lg = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE, stops);
-            circle.setFill(lg);
-        }
-        else if (currentStatus.getValue()==STATUS.CORRECTA){
-            Stop[] stops = new Stop[] { new Stop(0, new Color(0,255D/255,0,1)), new Stop(1, new Color(0,130D/255,0,1))};
-            LinearGradient lg = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE, stops);
-            circle.setFill(lg);
-        }
-        else{
-            Stop[] stops = new Stop[] { new Stop(0, Color.RED), new Stop(1, Color.DARKRED)};
-            LinearGradient lg = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE, stops);
-            circle.setFill(lg);
-        }
-    }
-
-}
-
-class Animación {
-
+	private void pausar() {
+		if (isPlaying) {
+			timeline.pause();
+		} else {
+			timeline.play();
+		}
+		isPlaying = !isPlaying;
+	}
 }
