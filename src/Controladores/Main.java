@@ -1,4 +1,4 @@
-package sample;
+package Controladores;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -16,6 +16,19 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         stage = primaryStage;
+	    Main.stage.setTitle("Pasapalabras");
+	    Main.stage.setMaximized(true);
+	    Main.stage.setFullScreenExitHint("");
+	    Main.stage.setFullScreen(true);
+	    Main.stage.setOnCloseRequest(e -> {
+		    try {
+			    WebCamManager.getWebCams().get(CONFIG.CAMERA_INDEX).close();
+			    Main.stage.setScene(null);
+
+		    } catch (Exception ignore) {
+		    }
+	    });
+
         Stage aux = new Stage();
         Parent root = FXMLLoader.load(getClass().getResource("Setting.fxml"));
         aux.setTitle("Pasapalabras - configuraciones");

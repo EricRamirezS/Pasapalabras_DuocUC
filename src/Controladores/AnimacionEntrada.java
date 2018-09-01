@@ -1,4 +1,4 @@
-package sample;
+package Controladores;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -58,6 +58,7 @@ class AnimacionEntrada {
 			);
 			circulo.setTranslateY(-r - r);
 			circulo.setTranslateX(r + r);
+			circulo.setVisible(true);
 			i--;
 		}
 		return tl;

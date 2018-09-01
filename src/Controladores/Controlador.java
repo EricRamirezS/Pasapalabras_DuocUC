@@ -1,4 +1,4 @@
-package sample;
+package Controladores;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -10,6 +10,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Group;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.ImageView;
@@ -20,9 +22,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Pasapalabras_DuocUC
+ * <p>
+ * Created by Eric Ramírez Santis on 28-08-2018.
+ * Github Account: https://github.com/EricRamirezS
+ */
 public class Controlador {
 
 	private final DoubleProperty tiempoProperty = new SimpleDoubleProperty(CONFIG.TIEMPO_MAXIMO * 1000);
+	private Timeline animacionEntrada;
 	private Character current = CONFIG.abc.get(0);
 	@FXML
 	private ImageView webcam;
@@ -37,34 +46,21 @@ public class Controlador {
 	private HashMap<Character, CirculoLetra> circulos;
 	private boolean isPlaying = false;
 	private Timeline timeline;
+	@FXML
+	private Group g1;
+	@FXML
+	private Group g2;
+	@FXML
+	private Group g3;
 
 	@FXML
-	void initialize() {
-
-		root.setStyle("-fx-background-color: darkslategray");
-		int i = 0;
-		circulos = new HashMap<>();
-		ArrayList<CirculoLetra> circuloLetras = new ArrayList<>();
-		double r = Main.SCREEN.getHeight() / 2 * 0.8;
-		for (char character : CONFIG.abc) {
-			CirculoLetra circle = new CirculoLetra(character, this);
-			root.getChildren().add(circle);
-			circulos.put(character, circle);
-			circuloLetras.add(circle);
-			double x = calcularCircunferenciaX(r, i);
-			double y = calcularCircunferenciaY(r, i);
-			circle.setTranslateX(x);
-			circle.setTranslateY(-y);
-			i++;
-		}
-
+	void inicializar(ActionEvent event) {
 		timeline = new Timeline(new KeyFrame(Duration.millis(1000 / 60), ev -> {
 			if (current != null) {
 				setTiempoProperty(tiempoProperty.subtract(1000 / 60).get());
 			}
 		}));
 		timeline.setCycleCount(Animation.INDEFINITE);
-
 
 		circulos.get(current).setCurrentStatus(CirculoLetra.STATUS.ACTIVA);
 		Platform.runLater(() -> Main.stage.getScene().setOnKeyPressed(e -> {
@@ -82,13 +78,17 @@ public class Controlador {
 			}
 		}));
 
-		Platform.runLater(() -> {
-			webcam.setFitHeight(root.getHeight());
-			webcam.setFitWidth(root.getWidth());
-			webcam.prefHeight(root.getHeight());
-			webcam.prefWidth(root.getWidth());
-			webcam.setPreserveRatio(false);
-		});
+		g1.setVisible(true);
+		g2.setVisible(true);
+		g3.setVisible(true);
+		((Button) event.getSource()).setVisible(false);
+		animacionEntrada.play();
+	}
+
+	@FXML
+	void initialize() {
+
+		root.setStyle("-fx-background-color: darkslategray");
 		barraTiempoRestante.progressProperty().bind(
 				tiempoProperty.subtract(CONFIG.TIEMPO_MAXIMO * 1000).multiply(-1).divide(CONFIG.TIEMPO_MAXIMO * 1000D)
 		);
@@ -97,8 +97,32 @@ public class Controlador {
 		labelTiempo.textProperty().bind(
 				intprop.asString()
 		);
+		circulos = new HashMap<>();
+		ArrayList<CirculoLetra> circuloLetras = new ArrayList<>();
+		double r = Main.SCREEN.getHeight() / 2 * 0.8;
+		int i = 0;
+
+		for (char character : CONFIG.abc) {
+			CirculoLetra circle = new CirculoLetra(character, this);
+			root.getChildren().add(circle);
+			circulos.put(character, circle);
+			circuloLetras.add(circle);
+			double x = calcularCircunferenciaX(r, i);
+			double y = calcularCircunferenciaY(r, i);
+			circle.setTranslateX(x);
+			circle.setTranslateY(-y);
+			i++;
+			circle.setVisible(false);
+		}
+		Platform.runLater(() -> {
+			webcam.setFitHeight(root.getHeight());
+			webcam.setFitWidth(root.getWidth());
+			webcam.prefHeight(root.getHeight());
+			webcam.prefWidth(root.getWidth());
+			webcam.setPreserveRatio(false);
+		});
 		new WebCamManager(0, webcam);
-		new AnimacionEntrada().getAnimacion(circuloLetras).play();
+		animacionEntrada = new AnimacionEntrada().getAnimacion(circuloLetras);
 	}
 
 	@FXML

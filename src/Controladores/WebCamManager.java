@@ -1,4 +1,4 @@
-package sample;
+package Controladores;
 
 import com.github.sarxos.webcam.Webcam;
 import javafx.application.Platform;

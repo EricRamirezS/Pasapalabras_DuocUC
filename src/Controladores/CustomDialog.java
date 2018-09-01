@@ -1,4 +1,4 @@
-package sample;
+package Controladores;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;

@@ -1,4 +1,4 @@
-package sample;
+package Controladores;
 
 import com.github.sarxos.webcam.Webcam;
 import javafx.collections.FXCollections;
@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static sample.Main.SCREEN;
+import static Controladores.Main.SCREEN;
 
 /**
  * Pasapalabras_DuocUC
@@ -107,23 +107,13 @@ public class CONFIG {
 		}
 		CAMERA = !cbCamaras.isDisable();
 		CAMERA_INDEX = cbCamaras.getSelectionModel().getSelectedIndex();
-		Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-		Main.stage.setTitle("Pasapalabras");
+		Parent root = FXMLLoader.load(getClass().getResource("mainscreen.fxml"));
 		Main.stage.setScene(new Scene(root, SCREEN.getWidth(), SCREEN.getHeight()));
-		Main.stage.setMaximized(true);
-		Main.stage.setFullScreenExitHint("");
 		Main.stage.setFullScreen(true);
 		Main.stage.show();
 		List<Webcam> webcam = Webcam.getWebcams();
 
-		Main.stage.setOnCloseRequest(e -> {
-			try {
-				webcam.get(0).close();
-				Main.stage.setScene(null);
 
-			} catch (Exception ignore) {
-			}
-		});
 	}
 
 	@FXML

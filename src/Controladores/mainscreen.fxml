@@ -9,16 +9,15 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity"
-           minHeight="-Infinity"
-           minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0"
+           minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0"
            style="-fx-background-color: DARKBLUE;" xmlns="http://javafx.com/javafx/8.0.141"
-           fx:controller="sample.Controlador">
+           fx:controller="Controladores.Controlador">
     <ImageView fx:id="webcam" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true"/>
-    <Group StackPane.alignment="BOTTOM_LEFT">
+    <Group fx:id="g1" visible="false" StackPane.alignment="BOTTOM_LEFT">
         <StackPane prefHeight="150.0" prefWidth="200.0">
             <ProgressIndicator fx:id="barraTiempoRestante" maxHeight="1.7976931348623157E308"
-                               maxWidth="1.7976931348623157E308" prefHeight="125.0" prefWidth="125.0"
-                               progress="0.0" stylesheets="@ProgressIndicator.css"/>
+                               maxWidth="1.7976931348623157E308" prefHeight="125.0" prefWidth="125.0" progress="0.0"
+                               stylesheets="@ProgressIndicator.css"/>
             <Circle fill="#ff1f1f" radius="90.0" stroke="BLACK" strokeType="INSIDE" translateY="-11.0">
                 <StackPane.margin>
                     <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
@@ -28,7 +27,7 @@
                    text="180" translateY="-11.0"/>
         </StackPane>
     </Group>
-    <Group StackPane.alignment="BOTTOM_RIGHT">
+    <Group fx:id="g2" visible="false" StackPane.alignment="BOTTOM_RIGHT">
         <StackPane prefHeight="150.0" prefWidth="200.0">
             <Circle fill="DODGERBLUE" radius="90.0" stroke="BLACK" strokeType="INSIDE" translateY="-11.0">
                 <StackPane.margin>
@@ -40,7 +39,7 @@
                    translateY="-11.0"/>
         </StackPane>
     </Group>
-    <Group StackPane.alignment="TOP_LEFT">
+    <Group fx:id="g3" visible="false" StackPane.alignment="TOP_LEFT">
         <VBox>
             <Label text="#PASAPALABRAS_DUOCUC" textFill="WHITE">
                 <font>
@@ -93,4 +92,11 @@
             <Image url="@Logo_DuocUC.svg.png"/>
         </ImageView>
     </Group>
+    <Button mnemonicParsing="false" onAction="#inicializar"
+            style="-fx-background-radius: 90; -fx-background-color: LIGHTGREEN; -fx-border-color: WHITE; -fx-border-radius: 90; -fx-border-width: 2;"
+            text="Comenzar" StackPane.alignment="BOTTOM_CENTER">
+        <StackPane.margin>
+            <Insets bottom="10.0"/>
+        </StackPane.margin>
+    </Button>
 </StackPane>
