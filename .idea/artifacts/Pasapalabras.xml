@@ -1,0 +1,25 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="Pasapalabras">
+    <output-path>$PROJECT_DIR$/out/artifacts/Pasapalabras</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="Controladores.Main" />
+        <option name="description" value="" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="title" value="Pasapalabras Duoc" />
+        <option name="vendor" value="Eric Bastian Ramirez Santis" />
+        <option name="version" value="0.8.9.20" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="directory" name="libs">
+        <element id="library" level="project" name="slf4j-api-1.7.2" />
+        <element id="library" level="project" name="webcam-capture-0.3.12" />
+        <element id="library" level="project" name="bridj-0.7.0" />
+      </element>
+      <element id="archive" name="Pasapalabras.jar">
+        <element id="module-output" name="Pasapalabras - javaFX" />
+      </element>
+    </root>
+  </artifact>
+</component>
