@@ -6,11 +6,12 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
+import javafx.scene.paint.Color;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,8 +33,36 @@ public class CONFIG {
 	static KeyCode CORRECTA = KeyCode.X;
 	static KeyCode PASAPALABRA = KeyCode.C;
 	static boolean CAMERA = false;
+	static boolean TIC_TAC = true;
 	static int CAMERA_INDEX = 0;
 	static int TIEMPO_MAXIMO = 180;
+	static String BACKGROUND_COLOR = Color.web(Color.DARKSLATEGRAY.toString()).toString();
+
+
+	@FXML
+	private CheckBox chkCamara;
+
+	@FXML
+	private HBox cameraBox;
+
+	@FXML
+	private ComboBox<Webcam> cbCamaras;
+
+	@FXML
+	private HBox colorPickerBox;
+
+	@FXML
+	private ColorPicker colorPicker;
+
+	@FXML
+	private Spinner<Integer> spTiempo;
+
+	@FXML
+	private CheckBox chkTicTac;
+
+	@FXML
+	private TilePane caracteres;
+
 	@FXML
 	private Button btnCorrecta;
 
@@ -44,22 +73,7 @@ public class CONFIG {
 	private Button btnPasapalabra;
 
 	@FXML
-	private TilePane caracteres;
-
-	@FXML
-	private Spinner<Integer> spTiempo;
-
-	@FXML
-	private CheckBox chkCamara;
-
-	@FXML
-	private ComboBox<Webcam> cbCamaras;
-
-	@FXML
-	void checlkCamara(ActionEvent event) {
-		cbCamaras.setItems(FXCollections.observableArrayList(WebCamManager.getWebCams()));
-		cbCamaras.getSelectionModel().select(0);
-	}
+	private Label labelDev;
 
 	@FXML
 	void setTecla(ActionEvent event) {
@@ -82,7 +96,7 @@ public class CONFIG {
 	}
 
 	@FXML
-	void startGame(ActionEvent event) throws IOException {
+	void startGame(ActionEvent ignored) throws IOException {
 		abc.clear();
 		try {
 			Integer.parseInt(spTiempo.getValueFactory().getValue().toString());
@@ -105,26 +119,32 @@ public class CONFIG {
 			alert.showAndWait();
 			return;
 		}
-		CAMERA = !cbCamaras.isDisable();
+		TIC_TAC = chkTicTac.isSelected();
+		BACKGROUND_COLOR = "#" + Integer.toHexString(colorPicker.getValue().hashCode()).substring(0, 6).toUpperCase();
+		CAMERA = chkCamara.isSelected();
 		CAMERA_INDEX = cbCamaras.getSelectionModel().getSelectedIndex();
-		Parent root = FXMLLoader.load(getClass().getResource("mainscreen.fxml"));
-		Main.stage.setScene(new Scene(root, SCREEN.getWidth(), SCREEN.getHeight()));
+		Main.stage.setScene(
+				new Scene(FXMLLoader.load(getClass().getResource("mainscreen.fxml")),
+						SCREEN.getWidth(),
+						SCREEN.getHeight())
+		);
 		Main.stage.setFullScreen(true);
 		Main.stage.show();
-		List<Webcam> webcam = Webcam.getWebcams();
-
-
 	}
 
 	@FXML
 	void initialize() {
 		cbCamaras.setItems(FXCollections.observableArrayList(WebCamManager.getWebCams()));
 		cbCamaras.getSelectionModel().select(0);
-		cbCamaras.disableProperty().bind(chkCamara.selectedProperty().not());
+		colorPicker.setValue(Color.DARKSLATEGRAY);
+		colorPickerBox.visibleProperty().bind(chkCamara.selectedProperty().not());
+		cameraBox.visibleProperty().bind(chkCamara.selectedProperty());
 
 		SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 999, 180);
 		spTiempo.setValueFactory(valueFactory);
 
+		labelDev.setStyle("-fx-text-fill: darkgray");
+		labelDev.setText("Desarrollado por Eric Ramírez - https://github.com/EricRamirezS");
 	}
 
 }

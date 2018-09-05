@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
+Class-Path: libs/slf4j-api-1.7.2.jar libs/bridj-0.7.0.jar libs/webcam-
+ capture-0.3.12.jar
 Main-Class: Controladores.Main
-Name: EricRamirezS/Pasapalabras/
-Class-Path: /libs/bridj-0.7.0.jar /libs/slf4j-api-1.7.2.jar /libs/webcam-capture-0.3.12.jar
 

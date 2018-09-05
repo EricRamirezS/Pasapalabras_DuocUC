@@ -16,7 +16,7 @@ import java.util.ArrayList;
 class AnimacionEntrada {
 
 	private final double[][] puntos = new double[200][2];
-
+	private Audio audio = new Audio();
 	private final double r;
 
 	AnimacionEntrada() {
@@ -40,6 +40,7 @@ class AnimacionEntrada {
 
 	Timeline getAnimacion(ArrayList<CirculoLetra> circulos) {
 		Timeline tl = new Timeline();
+		tl.getKeyFrames().add(new KeyFrame(Duration.ZERO, e -> audio.playBGM("Entrada")));
 		int i = circulos.size();
 		for (CirculoLetra circulo : circulos) {
 			for (int j = 199; j >= 0; j--) {
@@ -61,6 +62,7 @@ class AnimacionEntrada {
 			circulo.setVisible(true);
 			i--;
 		}
+		tl.setOnFinished(e -> audio.stopBGM());
 		return tl;
 	}
 }

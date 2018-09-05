@@ -41,11 +41,13 @@ public class Controlador {
 	private Label labelTiempo;
 	@FXML
 	private Label labelRespuestaCorrecta;
+
 	@FXML
 	private StackPane root;
 	private HashMap<Character, CirculoLetra> circulos;
 	private boolean isPlaying = false;
 	private Timeline timeline;
+	private Audio audio = new Audio();
 	@FXML
 	private Group g1;
 	@FXML
@@ -58,20 +60,22 @@ public class Controlador {
 		timeline = new Timeline(new KeyFrame(Duration.millis(1000 / 60), ev -> {
 			if (current != null) {
 				setTiempoProperty(tiempoProperty.subtract(1000 / 60).get());
+			} else {
+				isPlaying = false;
 			}
 		}));
 		timeline.setCycleCount(Animation.INDEFINITE);
 
 		circulos.get(current).setCurrentStatus(CirculoLetra.STATUS.ACTIVA);
 		Platform.runLater(() -> Main.stage.getScene().setOnKeyPressed(e -> {
-			if (e.getCode() == CONFIG.ERROR) {
-				selectNextCircle(CirculoLetra.STATUS.INCORRECTA);
+			if (e.getCode() == CONFIG.ERROR && isPlaying) {
+				incorrect(null);
 			}
-			if (e.getCode() == CONFIG.CORRECTA) {
-				selectNextCircle(CirculoLetra.STATUS.CORRECTA);
+			if (e.getCode() == CONFIG.CORRECTA && isPlaying) {
+				correct(null);
 			}
-			if (e.getCode() == CONFIG.PASAPALABRA) {
-				selectNextCircle(CirculoLetra.STATUS.PENDIENTE);
+			if (e.getCode() == CONFIG.PASAPALABRA && isPlaying) {
+				skip(null);
 			}
 			if (e.getCode() == CONFIG.PAUSA) {
 				pausar();
@@ -87,8 +91,15 @@ public class Controlador {
 
 	@FXML
 	void initialize() {
-
-		root.setStyle("-fx-background-color: darkslategray");
+		Main.stage.setOnCloseRequest(e -> {
+			try {
+				WebCamManager.getWebCams().get(CONFIG.CAMERA_INDEX).close();
+				Main.stage.setScene(null);
+				audio.stopBGM();
+			} catch (Exception ignore) {
+			}
+		});
+		root.setStyle("-fx-background-color: " + CONFIG.BACKGROUND_COLOR + ";");
 		barraTiempoRestante.progressProperty().bind(
 				tiempoProperty.subtract(CONFIG.TIEMPO_MAXIMO * 1000).multiply(-1).divide(CONFIG.TIEMPO_MAXIMO * 1000D)
 		);
@@ -121,28 +132,41 @@ public class Controlador {
 			webcam.prefWidth(root.getWidth());
 			webcam.setPreserveRatio(false);
 		});
-		new WebCamManager(0, webcam);
+		new WebCamManager(CONFIG.CAMERA_INDEX, webcam);
 		animacionEntrada = new AnimacionEntrada().getAnimacion(circuloLetras);
+		if (CONFIG.TIC_TAC) audio.playBGM("tictac");
+		audio.pauseBGM();
 	}
 
 	@FXML
 	void correct(ActionEvent event) {
-		selectNextCircle(CirculoLetra.STATUS.CORRECTA);
+		if (isPlaying) {
+			selectNextCircle(CirculoLetra.STATUS.CORRECTA);
+			audio.playAudio("Correcta");
+		}
 	}
 
 	@FXML
 	void incorrect(ActionEvent event) {
-		selectNextCircle(CirculoLetra.STATUS.INCORRECTA);
+		if (isPlaying) {
+			selectNextCircle(CirculoLetra.STATUS.INCORRECTA);
+			pausar();
+			audio.playAudio("Error");
+		}
 	}
 
 	@FXML
 	void pause(ActionEvent event) {
-		pausar();
+		if (current != null) pausar();
 	}
 
 	@FXML
 	void skip(ActionEvent event) {
-		selectNextCircle(CirculoLetra.STATUS.PENDIENTE);
+		if (isPlaying) {
+			selectNextCircle(CirculoLetra.STATUS.PENDIENTE);
+			pausar();
+			audio.playAudio("Pasapalabras");
+		}
 	}
 
 	private void setTiempoProperty(double tiempoProperty) {
@@ -151,6 +175,11 @@ public class Controlador {
 				this.tiempoProperty.set(tiempoProperty);
 			} else {
 				this.tiempoProperty.set(0);
+				current = null;
+				isPlaying = false;
+				timeline.stop();
+				audio.stopBGM();
+				audio.playAudio("gameover");
 			}
 		});
 	}
@@ -201,7 +230,10 @@ public class Controlador {
 			}
 			if (laps >= 10) {
 				current = null;
+				isPlaying = false;
 				timeline.stop();
+				audio.stopBGM();
+				audio.playAudio("aplausos");
 			}
 			updatePuntaje();
 		}
@@ -210,8 +242,12 @@ public class Controlador {
 	private void pausar() {
 		if (isPlaying) {
 			timeline.pause();
+			if (CONFIG.TIC_TAC) audio.pauseBGM();
+
 		} else {
 			timeline.play();
+			if (CONFIG.TIC_TAC) audio.resumeBGM();
+
 		}
 		isPlaying = !isPlaying;
 	}

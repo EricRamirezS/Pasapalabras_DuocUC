@@ -43,24 +43,6 @@ class CirculoLetra extends Group {
 		root.getChildren().addAll(circleBorder, circle, text);
 		getChildren().add(root);
 
-		circle.setOnMouseClicked(e -> {
-			switch (currentStatus.getValue()) {
-				case PENDIENTE:
-					setCurrentStatus(STATUS.INICIAL);
-					break;
-				case INICIAL:
-					setCurrentStatus(STATUS.ACTIVA);
-					break;
-				case ACTIVA:
-					setCurrentStatus(STATUS.CORRECTA);
-					break;
-				case CORRECTA:
-					setCurrentStatus(STATUS.INCORRECTA);
-					break;
-				default:
-					setCurrentStatus(STATUS.PENDIENTE);
-			}
-		});
 	}
 
 	STATUS getStatus() {
